@@ -149,5 +149,4 @@ public class GeographicalGridWorldModel extends GridWorldModel {
         return new Location(gridX, gridY);
     }
 
-
 }

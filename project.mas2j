@@ -1,6 +1,6 @@
 MAS project{
 
-    environment : src.Env.GeographicalEnvironment
+    environment : src.Env.Env
 
     agents:
         agent1;
