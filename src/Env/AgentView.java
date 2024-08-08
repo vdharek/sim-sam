@@ -7,13 +7,16 @@ import java.awt.*;
 
 public class AgentView extends GridWorldView {
 
-    private int OBSTACLE = 8;
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    int sWidth = (int) screenSize.getWidth();
+    int height = (int) screenSize.getHeight();
 
     private AgentModel agentModel;
     public AgentView(AgentModel model) {
-        super(model, "Environment", 1000); // Set initial window size
+        super(model, "Environment", model.getWidth()/2); // Set initial window size
         setVisible(true);
         this.agentModel = model;
+        //setSize(sWidth, height);
         //repaint();
     }
 

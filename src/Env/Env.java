@@ -2,6 +2,8 @@ package src.Env;
 
 import jason.environment.Environment;
 
+import java.awt.*;
+
 public class Env extends Environment {
 
 	private AgentModel agentModel;
@@ -43,7 +45,12 @@ public class Env extends Environment {
 				// Add the remaining coordinates here...
 		};
 		//coordinateCalc = new CoordinateCalc(coordinates);
-		agentModel = new AgentModel(100,100, coordinates);
+
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		int width = (int) screenSize.getWidth();
+		int height = (int) screenSize.getHeight();
+
+		agentModel = new AgentModel(width,width/2, coordinates);
 		agentView = new AgentView(agentModel);
 		agentModel.setView(agentView);
 		//agentView.setVisible(true);

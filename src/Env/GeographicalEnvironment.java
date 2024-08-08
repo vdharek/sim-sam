@@ -48,7 +48,7 @@ public class GeographicalEnvironment extends Environment {
         int height = (int) screenSize.getHeight();
 
         int cellSize = 2;
-        model = new GeographicalGridWorldModel(80, 40, coordinates, cellSize);
+        model = new GeographicalGridWorldModel(width/2, width/2, coordinates, cellSize);
         view = new GeographicalGridWorldView(model);
         model.setView(view);
     }

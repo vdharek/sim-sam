@@ -26,30 +26,67 @@ public class AgentModel extends GridWorldModel {
         this.screenHeight = gridHeight;
         this.wallLocation = new HashSet<>();
         addWall();
+        findEmptyCellsUntilWall();
         //fillOuterCellsWithObstacles();
     }
 
-    private void fillOuterCellsWithObstacles() {
+    public void findEmptyCellsUntilWall() {
+        // Start from each cell and log empty cells until a WALL is found
         for (int x = 0; x < getWidth(); x++) {
             for (int y = 0; y < getHeight(); y++) {
-                if (isFree(x, y)) {  // If cell is empty
-                    if (isOutsideBoundaries(x, y)) {
-                        add(OBSTACLE, x, y);
-                    }
+                if (hasObject(WALL,x, y)){  // Empty cell
+                    break;
+                }else{
+                    paintEmptyCells(x,y);
                 }
             }
         }
     }
 
-    private boolean isOutsideBoundaries(int x, int y) {
-        // Determine if (x, y) is outside the boundary of the walls
-        // Adjust this logic based on the specific wall boundaries
-        for (Location loc : wallLocation) {
-            if (x < loc.x || x > loc.x + 1 || y < loc.y || y > loc.y + 1) {
-                return true;
+    private void paintEmptyCells(int startX, int startY) {
+        // Log empty cells from (startX, startY) until a WALL is encountered
+        // Right direction
+        for (int x = startX; x < getWidth(); x++) {
+            if (hasObject(WALL, x, startY)) {
+                break;  // Stop when WALL is encountered
+            }
+            else{
+                add(OBSTACLE, x, startY);
+                //log.info("Empty cell found at: (" + x + ", " + startY + ")");
             }
         }
-        return false;
+
+        // Left direction
+        for (int x = startX; x >= 0; x--) {
+            if (hasObject(WALL, x, startY)) {
+                break;  // Stop when WALL is encountered
+            } else{
+                add(OBSTACLE, x, startY);
+                //log.info("Empty cell found at: (" + x + ", " + startY + ")");
+            }
+        }
+
+        // Up direction
+        for (int y = startY; y >= 0; y--) {
+            if(hasObject(WALL, startX, y)){
+                break;
+            }
+            else{
+                add(OBSTACLE, startX, y);
+                //log.info("Empty cell found at: (" + startX + ", " + y + ")");
+            }
+        }
+
+        // Down direction
+        for (int y = startY; y < getHeight(); y++) {
+            if (hasObject(WALL, startX, y)) {
+                break;  // Stop when WALL is encountered
+            }
+            else {
+                add(OBSTACLE, startX, y);
+                //log.info("Empty cell found at: (" + startX + ", " + y + ")");
+            }
+        }
     }
 
     private void addWall(){

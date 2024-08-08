@@ -9,7 +9,7 @@ public class GeographicalGridWorldView extends GridWorldView {
     private GeographicalGridWorldModel model;
 
     public GeographicalGridWorldView(GeographicalGridWorldModel model) {
-        super(model, "Geographical Grid World", model.getWidth() );
+        super(model, "Geographical Grid World", model.getWidth()/2 );
         System.out.println("Model.getWidth: " + model.getWidth());
         this.model = model;
         //setSize(800, 800);
