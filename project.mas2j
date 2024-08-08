@@ -1,0 +1,10 @@
+MAS project{
+
+    environment : src.Env.GeographicalEnvironment
+
+    agents:
+        agent1;
+
+    aslSourcePath : "src/agt";
+
+}
