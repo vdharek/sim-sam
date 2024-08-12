@@ -13,10 +13,10 @@ public class AgentView extends GridWorldView {
 
     private AgentModel agentModel;
     public AgentView(AgentModel model) {
-        super(model, "Environment", model.getWidth()/2); // Set initial window size
+        super(model, "Environment", model.getHeight() ); // Set initial window size
         setVisible(true);
         this.agentModel = model;
-        //setSize(sWidth, height);
+        setSize(sWidth, height);
         //repaint();
     }
 
@@ -47,6 +47,9 @@ public class AgentView extends GridWorldView {
         } else if ((object & AgentModel.OBSTACLE) != 0) {
             g.setColor(Color.GRAY);  // Color for OBSTACLE
             g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
+        }else if(((object & AgentModel.AGENTS) != 0)){
+            g.setColor(Color.red);
+            g.fillOval(x , y * cellSizeH, cellSizeW, cellSizeH);
         }
     }
 

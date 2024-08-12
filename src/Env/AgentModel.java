@@ -13,6 +13,7 @@ public class AgentModel extends GridWorldModel {
 
     public static final int WALL = 16;
     public static final int OBSTACLE = 32;
+    public static final int AGENTS = 64;
     private Set<Location> wallLocation;
     private int screenWidth, screenHeight;
     private double[][] coordinates;
@@ -28,6 +29,14 @@ public class AgentModel extends GridWorldModel {
         addWall();
         findEmptyCellsUntilWall();
         //fillOuterCellsWithObstacles();
+    }
+
+    public int[][] getGridSize(double rangeX, double rangeY) {
+
+        CELL_SIZE = 0.1;
+        int gridWidth = (int) Math.ceil(rangeX / CELL_SIZE);
+        int gridHeight = (int) Math.ceil(rangeY / CELL_SIZE);
+        return new int[gridHeight][gridWidth];
     }
 
     public void findEmptyCellsUntilWall() {
@@ -105,14 +114,7 @@ public class AgentModel extends GridWorldModel {
         double rangeX = maxLat - minLat;
         double rangeY = maxLon - minLon;
 
-        CELL_SIZE = 0.2;
-
-        int gridWidth = (int) Math.ceil(rangeX / CELL_SIZE);
-        int gridHeight = (int) Math.ceil(rangeY / CELL_SIZE);
-
-        System.out.println(gridWidth + "GridWidth");
-        System.out.println(gridHeight + "GridHeight");
-
+        getGridSize(rangeX, rangeY);
 
         for(int i=0; i<coordinates.length-1; i++){
             Location start = setCoordinates(coordinates[i][0], coordinates[i][1], minLat, minLon, maxLat, maxLon);
@@ -160,7 +162,7 @@ public class AgentModel extends GridWorldModel {
     }
 
     private Location setCoordinates(double x, double y, double minX, double minY, double maxX, double maxY){
-        int gridX = (int) ((x - minX) / (maxX - minX) * screenWidth);
+        int gridX = (int) ((maxX - x) / (maxX - minX) * screenWidth);
         int gridY = (int) ((maxY - y) / (maxY - minY) * screenHeight);
         System.out.println("Real-world coordinates: (" + x + ", " + y + ")");
         System.out.println("Mapped to grid coordinates: (" + gridX + ", " + gridY + ")");

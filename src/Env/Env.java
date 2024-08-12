@@ -1,16 +1,50 @@
 package src.Env;
 
 import jason.environment.Environment;
+import org.example.GMLParser;
+import org.example.GMLValidator;
 
 import java.awt.*;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.logging.Logger;
 
 public class Env extends Environment {
+
+	private static final java.util.logging.Logger log = Logger.getLogger(Env.class.getName());
+	public static void main( String[] args ){
+
+		String path = "./gmlFiles/Frankfurt_Street_Setting_LOD3.gml";
+
+		GMLValidator gmlValidator = new GMLValidator(Paths.get(path));
+
+		try {
+			boolean isValid = gmlValidator.validate();
+
+			if (isValid) {
+				log.info("GML file is valid, Proceeding with parsing.");
+				GMLParser parser = new GMLParser(path);
+				GMLParser.main(new String[]{});
+				List<Double> coordinates = parser.getListCoordinates();
+				if (coordinates != null && !coordinates.isEmpty()) {
+					log.info("Retrieved coordinates:");
+					for (Double coordinate : coordinates) {
+						System.out.println(coordinate);
+					}
+				} else {
+					log.info("No coordinates found");
+				}
+			} else {
+				log.warning("GML file is not valid.");
+			}
+		}catch (Exception e){
+			log.severe("An error occurred during validation: " + e.getMessage());
+		}
+	}
 
 	private AgentModel agentModel;
 	private AgentView agentView;
 	private CoordinateCalc coordinateCalc;
-
-
 
 	public void init(String[] args) {
 		super.init(args);
@@ -50,9 +84,17 @@ public class Env extends Environment {
 		int width = (int) screenSize.getWidth();
 		int height = (int) screenSize.getHeight();
 
-		agentModel = new AgentModel(width,width/2, coordinates);
+		agentModel = new AgentModel(300, 350, coordinates);
 		agentView = new AgentView(agentModel);
 		agentModel.setView(agentView);
 		//agentView.setVisible(true);
+
+		/*
+
+		//Meter to CM.
+		//Calculate gridSize;
+		//Write introduction.
+		*/
+
 	}
 }
