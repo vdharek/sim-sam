@@ -3,6 +3,8 @@ package src.Env;
 import jason.environment.Environment;
 
 import java.awt.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,12 @@ public class Env extends Environment {
 	public void init(String[] args) {
 		super.init(args);
 		List<Double> coordinateList = getCoordinates(path);
+		//convertListToArray(coordinateList);
 		double[][] coordinateArray = convertListToArray(coordinateList);
+
+		for (double[] row : coordinateArray) {
+			System.out.println(row[0] + ", " + row[1]);
+		}
 
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int width = (int) screenSize.getWidth();
@@ -70,8 +77,20 @@ public class Env extends Environment {
 			array[i][0] = list.get(i * 3);       // First value
 			array[i][1] = list.get(i * 3 + 1);   // Second value
 		}
-		System.out.println("Array length:  "+array.length);
-		return array;
+		//System.out.println("Array length:  "+array.length);
+		return roundPoints(array, 8);
 	}
 
+	public static double[][] roundPoints(double[][] points, int decimalPlaces) {
+		double[][] roundedPoints = new double[points.length][2];
+		BigDecimal bd;
+
+		for (int i = 0; i < points.length; i++) {
+			bd = new BigDecimal(points[i][0]).setScale(decimalPlaces, RoundingMode.HALF_UP);
+			roundedPoints[i][0] = bd.doubleValue();
+			bd = new BigDecimal(points[i][1]).setScale(decimalPlaces, RoundingMode.HALF_UP);
+			roundedPoints[i][1] = bd.doubleValue();
+		}
+		return roundedPoints;
+	}
 }
