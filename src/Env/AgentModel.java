@@ -164,8 +164,8 @@ public class AgentModel extends GridWorldModel {
     private Location setCoordinates(double x, double y, double minX, double minY, double maxX, double maxY){
         int gridX = (int) ((maxX - x) / (maxX - minX) * screenWidth);
         int gridY = (int) ((maxY - y) / (maxY - minY) * screenHeight);
-        System.out.println("Real-world coordinates: (" + x + ", " + y + ")");
-        System.out.println("Mapped to grid coordinates: (" + gridX + ", " + gridY + ")");
+        //System.out.println("Real-world coordinates: (" + x + ", " + y + ")");
+        //System.out.println("Mapped to grid coordinates: (" + gridX + ", " + gridY + ")");
         return new Location(gridX, gridY);
     }
 
