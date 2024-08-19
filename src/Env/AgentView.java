@@ -20,22 +20,6 @@ public class AgentView extends GridWorldView {
         //repaint();
     }
 
-    /*@Override
-    public void draw(Graphics g, int x, int y, int object) {
-        super.draw(g, x, y, object);
-        if (object == AgentModel.WALL) { // Use AGENT identifier
-            g.setColor(Color.BLACK);
-            g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
-            //System.out.println("cellSizeW = " + cellSizeW);
-            //System.out.println("cellSizeH = " + cellSizeH);
-            //super.drawAgent(g, x, y, Color.RED, -1); // Drawing agent as a red cell
-        }
-        if(object == AgentModel.OBSTACLE){
-            g.setColor(Color.GRAY);
-            g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
-        }
-    }*/
-
     @Override
     public void draw(Graphics g, int x, int y, int object) {
         super.draw(g, x, y, object);

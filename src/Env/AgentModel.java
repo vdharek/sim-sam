@@ -128,39 +128,6 @@ public class AgentModel extends GridWorldModel {
         }
     }
 
-    private void floodFill(int x, int y, boolean[][] visited) {
-        if (x < 0 || x >= screenWidth || y < 0 || y >= screenHeight || visited[x][y]) {
-            return;
-        }
-
-        if (hasObject(WALL, x, y)) {
-            return;
-        }
-
-        visited[x][y] = true;
-        add(OBSTACLE, new Location(x, y));
-
-        floodFill(x + 1, y, visited);
-        floodFill(x - 1, y, visited);
-        floodFill(x, y + 1, visited);
-        floodFill(x, y - 1, visited);
-    }
-
-    private double haversine(double lat1, double lon1, double lat2, double lon2) {
-        //final double R = 6378137; // Earth's radius in meters
-        double dLat = toRadians(lat2 - lat1);
-        double dLon = toRadians(lon2 - lon1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
-                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Distance in meters
-    }
-
-    private double toRadians(double degree) {
-        return degree * Math.PI / 180.0;
-    }
-
     private Location setCoordinates(double x, double y, double minX, double minY, double maxX, double maxY){
         int gridX = (int) ((maxX - x) / (maxX - minX) * screenWidth);
         int gridY = (int) ((maxY - y) / (maxY - minY) * screenHeight);
@@ -201,4 +168,5 @@ public class AgentModel extends GridWorldModel {
             }
         }
     }
+
 }
