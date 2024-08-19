@@ -14,6 +14,25 @@ public class CoordinatesParser {
     private static Map<String, List<Double>> mapCoordinates;
     private static List<Double> listCoordinates = new ArrayList<>();
     private static double[][] arrayCoordinates;
+    private static int gridHeight;
+    private static int gridWidth;
+    private final double cellSize = 0.1;
+
+    public int getGridHeight() {
+        return gridHeight;
+    }
+
+    public static void setGridHeight(int gridHeight) {
+        CoordinatesParser.gridHeight = gridHeight;
+    }
+
+    public int getGridWidth() {
+        return gridWidth;
+    }
+
+    public static void setGridWidth(int gridWidth) {
+        CoordinatesParser.gridWidth = gridWidth;
+    }
 
     public static Map<String, List<Double>> getMapCoordinates() {
         return mapCoordinates;
@@ -58,6 +77,7 @@ public class CoordinatesParser {
                 setMapCoordinates(mapCoordinates);
                 setListCoordinates(coordinates);
                 setArrayCoordinates(coordinates);
+                calculateGrid(arrayCoordinates);
                 if (!coordinates.isEmpty()) {
                     log.info("List coordinates stored:");
                     log.info("Coordinate stored in a List.");
@@ -74,4 +94,29 @@ public class CoordinatesParser {
             log.severe("An error occurred during validation: " + e.getMessage());
         }
     }
+
+    public void calculateGrid(double[][] values){
+        double minX = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+
+        for(double[] coord : values){
+            double x = coord[0];
+            double y = coord[1];
+            if(x < minX) minX = x;
+            if(x > maxX) maxX = x;
+            if(y < minY) minY = y;
+            if(y > maxY) maxY = y;
+        }
+
+        int numRows = (int) Math.ceil((maxX - minX) / cellSize);
+        int numCols = (int) Math.ceil((maxY - minY) / cellSize);
+        log.info("GridRows: "+numRows);
+        log.info("GridCols: "+numCols);
+
+        setGridHeight(numRows);
+        setGridWidth(numCols);
+    }
+
 }
