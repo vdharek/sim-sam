@@ -7,17 +7,10 @@ import java.awt.*;
 
 public class AgentView extends GridWorldView {
 
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    int sWidth = (int) screenSize.getWidth();
-    int height = (int) screenSize.getHeight();
-
-    private AgentModel agentModel;
     public AgentView(AgentModel model) {
-        super(model, "Environment", model.getHeight() ); // Set initial window size
+        super(model, "Environment", model.getWidth());
+        setResizable(true);
         setVisible(true);
-        this.agentModel = model;
-        setSize(sWidth, height);
-        //repaint();
     }
 
     @Override

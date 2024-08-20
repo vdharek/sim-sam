@@ -12,31 +12,123 @@ public class AgentModel extends GridWorldModel {
     Logger log = Logger.getLogger(AgentModel.class.getName());
 
     public static final int WALL = 16;
-    public static final int OBSTACLE = 32;
-    public static final int AGENTS = 64;
-    private Set<Location> wallLocation;
-    private int screenWidth, screenHeight;
-    private double[][] coordinates;
-    private double R = 6378137;
-    private double CELL_SIZE;
+    public static final int AGENTS =2;
+    private final Set<Location> wallLocation;
+    private final int screenWidth;
+    private final int screenHeight;
+    private final double[][] coordinates;
+    private final double[] minMax;
+    private double lonScale;
+    private double latScale;
+    private double x0;
+    private double y0;
 
-    public AgentModel(int gridWidth, int gridHeight, double[][] coordinates) {
-        super(gridHeight, gridWidth, WALL);
+    protected AgentModel(int gridWidth, int gridHeight, double[][] coordinates, double[] minMax) {
+        super(gridWidth, gridHeight, WALL);
         this.coordinates = coordinates;
         this.screenWidth = gridWidth;
         this.screenHeight = gridHeight;
-        this.wallLocation = new HashSet<>();
+        this.minMax = minMax;
+        this.wallLocation = new HashSet<Location>();
+
+        initializeScaling();
         addWall();
         findEmptyCellsUntilWall();
-        //fillOuterCellsWithObstacles();
     }
 
-    public int[][] getGridSize(double rangeX, double rangeY) {
+    private void initializeScaling() {
+        double minLon = minMax[0];
+        double maxLon = minMax[1];
+        double minLat = minMax[2];
+        double maxLat = minMax[3];
 
-        CELL_SIZE = 0.1;
-        int gridWidth = (int) Math.ceil(rangeX / CELL_SIZE);
-        int gridHeight = (int) Math.ceil(rangeY / CELL_SIZE);
-        return new int[gridHeight][gridWidth];
+        double deltaLon = maxLon - minLon;
+        double deltaLat = maxLat - minLat;
+
+        if (deltaLon != 0.0 && deltaLat != 0.0) {
+            lonScale = (screenWidth - 1) / deltaLon;
+            latScale = (screenHeight - 1) / deltaLat;
+            x0 = -minLon * lonScale;
+            y0 = maxLat * latScale;
+
+            if (lonScale > latScale) {
+                lonScale = latScale;
+                x0 = ((screenWidth - 1) - (minLon + maxLon) * lonScale) / 2.0;
+            } else {
+                latScale = lonScale;
+                y0 = ((screenHeight - 1) + (minLat + maxLat) * latScale) / 2.0;
+            }
+        } else if (deltaLon != 0.0) {
+            lonScale = (screenWidth - 1) / deltaLon;
+            latScale = 0;
+            x0 = -minLon * lonScale;
+            y0 = (screenHeight - 1) / 2.0;
+        } else if (deltaLat != 0.0) {
+            lonScale = 0;
+            latScale = (screenHeight - 1) / deltaLat;
+            x0 = (screenWidth - 1) / 2.0;
+            y0 = maxLat * latScale;
+        } else {
+            lonScale = 0;
+            latScale = 0;
+            x0 = (screenWidth - 1) / 2.0;
+            y0 = (screenHeight - 1) / 2.0;
+        }
+    }
+
+    private void addWall() {
+        double minX = minMax[0];
+        double maxX = minMax[1];
+        double minY = minMax[2];
+        double maxY = minMax[3];
+
+        for (int i = 0; i < coordinates.length - 1; i++) {
+            Location start = transformCoordinates(coordinates[i][0], coordinates[i][1], minX, minY, maxX, maxY);
+            Location end = transformCoordinates(coordinates[i + 1][0], coordinates[i + 1][1], minX, minY, maxX, maxY);
+
+            addWallInBetween(start, end);
+        }
+    }
+
+    private Location transformCoordinates(double x, double y, double minX, double minY, double maxX, double maxY) {
+        int gridX = (int) (x0 + x * lonScale);
+        int gridY = (int) (y0 - y * latScale);
+        System.out.println("Real-world coordinates: (" + x + ", " + y + ")");
+        System.out.println("Mapped to grid coordinates: (" + gridX + ", " + gridY + ")");
+        return new Location(gridX, gridY);
+    }
+
+    private void addWallInBetween(Location start, Location end) {
+        int dx = Math.abs(end.x - start.x);
+        int dy = Math.abs(end.y - start.y);
+        int sx = start.x < end.x ? 1 : -1;
+        int sy = start.y < end.y ? 1 : -1;
+        int err = dx - dy;
+
+        int x = start.x;
+        int y = start.y;
+
+        while (true) {
+            Location loc = new Location(x, y);
+            if (!wallLocation.contains(loc)) {
+                wallLocation.add(loc);
+                if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight()) {
+                    add(WALL, loc);
+                }
+            }
+            if (x == end.x && y == end.y) {
+                break;
+            }
+            int e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y += sy;
+            }
+        }
     }
 
     public void findEmptyCellsUntilWall() {
@@ -97,76 +189,4 @@ public class AgentModel extends GridWorldModel {
             }
         }
     }
-
-    private void addWall(){
-        double minLat = Double.POSITIVE_INFINITY;
-        double maxLat = Double.NEGATIVE_INFINITY;
-        double minLon = Double.POSITIVE_INFINITY;
-        double maxLon = Double.NEGATIVE_INFINITY;
-
-        for(double[] coord : coordinates){
-            if(coord[0] < minLat) minLat = coord[0];
-            if(coord[0] > maxLat) maxLat = coord[0];
-            if(coord[1] < minLon) minLon = coord[1];
-            if(coord[1] > maxLon) maxLon = coord[1];
-        }
-
-        double rangeX = maxLat - minLat;
-        double rangeY = maxLon - minLon;
-
-        getGridSize(rangeX, rangeY);
-
-        for(int i=0; i<coordinates.length-1; i++){
-            Location start = setCoordinates(coordinates[i][0], coordinates[i][1], minLat, minLon, maxLat, maxLon);
-            Location end = setCoordinates(coordinates[i+1][0], coordinates[i+1][1], minLat, minLon, maxLat, maxLon);
-
-            //double distanceX = haversine(minLat, minLon, maxLat, maxLon);
-            //double distanceY = haversine(minLat, minLon, maxLat, maxLon);
-            //System.out.println("DistanceX: " + distanceX);
-            //System.out.println("DistanceY: " + distanceY);
-            addWallInBetween(start, end);
-        }
-    }
-
-    private Location setCoordinates(double x, double y, double minX, double minY, double maxX, double maxY){
-        int gridX = (int) ((maxX - x) / (maxX - minX) * screenWidth);
-        int gridY = (int) ((maxY - y) / (maxY - minY) * screenHeight);
-        //System.out.println("Real-world coordinates: (" + x + ", " + y + ")");
-        //System.out.println("Mapped to grid coordinates: (" + gridX + ", " + gridY + ")");
-        return new Location(gridX, gridY);
-    }
-
-    private void addWallInBetween(Location start, Location end){
-        int dx = Math.abs(end.x - start.x);
-        int dy = Math.abs(end.y - start.y);
-        int sx = start.x < end.x ? 1 : -1;
-        int sy = start.y < end.y ? 1 : -1;
-        int err = dx - dy;
-
-        int x = start.x;
-        int y = start.y;
-
-        while(true){
-            Location loc =  new Location(x, y);
-            if(!wallLocation.contains(loc)) {
-                wallLocation.add(loc);
-                if(x >= 0 && x < getWidth() && y >=0 && y < getHeight()){
-                    add(WALL, loc);
-                }
-            }
-            if(x == end.x && y == end.y){
-                break;
-            }
-            int e2 = 2 * err;
-            if(e2 > -dy){
-                err -= dy;
-                x += sx;
-            }
-            if(e2 < dy){
-                err += dx;
-                y += sy;
-            }
-        }
-    }
-
 }

@@ -14,9 +14,26 @@ public class CoordinatesParser {
     private static Map<String, List<Double>> mapCoordinates;
     private static List<Double> listCoordinates = new ArrayList<>();
     private static double[][] arrayCoordinates;
+    private static double[][] gridCoordinates;
     private static int gridHeight;
     private static int gridWidth;
-    private final double cellSize = 0.1;
+    private double[] minMax = new double[4];
+
+    public double[] getMinMax() {
+        return minMax;
+    }
+
+    public void setMinMax(double[] minMax) {
+        this.minMax = minMax;
+    }
+
+    public double[][] getGridCoordinates() {
+        return gridCoordinates;
+    }
+
+    public static void setGridCoordinates(double[][] gridCoordinates) {
+        CoordinatesParser.gridCoordinates = gridCoordinates;
+    }
 
     public int getGridHeight() {
         return gridHeight;
@@ -96,6 +113,9 @@ public class CoordinatesParser {
     }
 
     public void calculateGrid(double[][] values){
+        double[][] gridCoordinates = new double[values.length][2];
+        double[] minMax = new double[4];
+
         double minX = Double.POSITIVE_INFINITY;
         double maxX = Double.NEGATIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
@@ -110,6 +130,14 @@ public class CoordinatesParser {
             if(y > maxY) maxY = y;
         }
 
+        minMax[0] = minX;
+        minMax[1] = maxX;
+        minMax[2] = minY;
+        minMax[3] = maxY;
+
+        setMinMax(minMax);
+
+        double cellSize = 0.1;
         int numRows = (int) Math.ceil((maxX - minX) / cellSize);
         int numCols = (int) Math.ceil((maxY - minY) / cellSize);
         log.info("GridRows: "+numRows);
@@ -117,6 +145,13 @@ public class CoordinatesParser {
 
         setGridHeight(numRows);
         setGridWidth(numCols);
+
+        for(int i=0; i<values.length; i++){
+            gridCoordinates[i][0] = (values[i][0] - minX) / (maxX - minX) * (numCols - 1);
+            gridCoordinates[i][1] = (values[i][1] - minY) / (maxY - minY) * (numRows - 1);
+        }
+        setGridCoordinates(gridCoordinates);
+
     }
 
 }
