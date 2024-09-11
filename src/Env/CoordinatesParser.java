@@ -134,6 +134,7 @@ public class CoordinatesParser {
         minMax[1] = maxX;
         minMax[2] = minY;
         minMax[3] = maxY;
+        log.info("minX,maxX = " + minX +","+maxX+", minY,maxY = " + minY +","+maxY);
 
         setMinMax(minMax);
 
