@@ -7,7 +7,8 @@ import java.util.logging.Logger;
 import org.example.*;
 
 /**
- * The {@code CoordinatesParser} class is responsible for parsing geographic coordinates from a GML (Geography Markup Language) file, validating the file, and converting the coordinates into a grid-based representation for further use in a grid environment.
+ * The {@code CoordinatesParser} class is responsible for parsing geographic coordinates from a GML (Geography Markup Language) file,
+ * validating the file, and converting the coordinates into a grid-based representation for further use in a grid environment.
  */
 public class CoordinatesParser {
 

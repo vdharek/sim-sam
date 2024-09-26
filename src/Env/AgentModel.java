@@ -76,15 +76,27 @@ public class AgentModel extends GridWorldModel {
         double minLat = minMax[2];
         double maxLat = minMax[3];
 
+        /*System.out.println("minLon: " + minLon);
+        System.out.println("maxLon: " + maxLon);
+        System.out.println("minLat: " + minLat);
+        System.out.println("maxLat: " + maxLat);*/
+
         double deltaLon = maxLon - minLon;
         double deltaLat = maxLat - minLat;
+
+        System.out.println("deltaLon: " + deltaLon);
+        System.out.println("deltaLat: " + deltaLat);
 
         // Calculate scaling factors for longitude and latitude.
         if (deltaLon != 0.0 && deltaLat != 0.0) {
             lonScale = (screenWidth - 1) / deltaLon;
+            //System.out.println("lonScale: " + lonScale);
             latScale = (screenHeight - 1) / deltaLat;
+            //System.out.println("latScale: " + latScale);
             x0 = -minLon * lonScale;
             y0 = maxLat * latScale;
+            //System.out.println("x0: " + x0);
+            //System.out.println("y0: " + y0);
 
             // Adjust scaling factors to maintain aspect ratio.
             if (lonScale > latScale) {
@@ -124,9 +136,8 @@ public class AgentModel extends GridWorldModel {
 
         // Loop through pairs of geographic coordinates to create walls in between.
         for (int i = 0; i < coordinates.length - 1; i++) {
-            Location start = transformCoordinates(coordinates[i][0], coordinates[i][1], minX, minY, maxX, maxY);
-            Location end = transformCoordinates(coordinates[i + 1][0], coordinates[i + 1][1], minX, minY, maxX, maxY);
-
+            Location start = transformCoordinates(coordinates[i][0], coordinates[i][1]);
+            Location end = transformCoordinates(coordinates[i + 1][0], coordinates[i + 1][1]);
             addWallInBetween(start, end);  // Add walls between the two locations.
         }
     }
@@ -136,13 +147,9 @@ public class AgentModel extends GridWorldModel {
      *
      * @param x longitude value.
      * @param y latitude value.
-     * @param minX minimum longitude in the dataset.
-     * @param minY minimum latitude in the dataset.
-     * @param maxX maximum longitude in the dataset.
-     * @param maxY maximum latitude in the dataset.
      * @return the corresponding grid {@link Location}.
      */
-    private Location transformCoordinates(double x, double y, double minX, double minY, double maxX, double maxY) {
+    private Location transformCoordinates(double x, double y) {
         int gridX = (int) (x0 + x * lonScale);
         int gridY = (int) (y0 - y * latScale);
         return new Location(gridX, gridY);

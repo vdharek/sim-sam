@@ -7,7 +7,7 @@ import java.util.logging.Logger;
  * This class represents a custom environment for a Jason agent system.
  * It extends the Jason {@link Environment} class and provides methods
  * for initializing the environment with specific parameters and models.
- *
+
  * The environment is designed to handle a graphical representation of
  * agents within a grid, using data parsed from a GML (Geography Markup Language) file.
  */

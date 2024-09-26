@@ -1,6 +1,5 @@
 package src.Env;
 
-import jason.environment.grid.GridWorldModel;
 import jason.environment.grid.GridWorldView;
 
 import java.awt.*;
