@@ -1,6 +1,6 @@
 MAS project{
 
-    environment : src.Env.Env
+    environment : src.model.Env
 
     agents:
         agent1;

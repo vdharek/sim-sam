@@ -1,4 +1,4 @@
-package src.Env;
+package src.model;
 
 import java.nio.file.Paths;
 import java.util.*;
@@ -16,11 +16,20 @@ public class CoordinatesParser {
     private static Map<String, List<Double>> mapCoordinates;      // Stores named map coordinates
     private static List<Double> listCoordinates = new ArrayList<>();  // List to store all parsed coordinates
     private static double[][] arrayCoordinates;  // 2D array representation of coordinates
-    private static double[][] gridCoordinates;   // Grid coordinates calculated from real-world data
+    private static double[][] gridCoordinates;  // Grid coordinates calculated from real-world data
     private static int gridHeight;               // Height of the grid
     private static int gridWidth;                // Width of the grid
-    private double[] minMax = new double[4];     // Min/max values for longitude and latitude
+    private double[] minMax = new double[4];
 
+    public List<List<Double>> getLaneLists() {
+        return laneLists;
+    }
+
+    public static void setLaneLists(List<List<Double>> laneLists) {
+        CoordinatesParser.laneLists = laneLists;
+    }
+
+    private static List<List<Double>> laneLists;
     /**
      * Getter for the min/max values of coordinates.
      *
@@ -168,7 +177,9 @@ public class CoordinatesParser {
                 GMLParser.main(new String[]{});  // Invoke main parser
                 Map<String, List<Double>> mapCoordinates = parser.getMapCoordinates();
                 List<Double> coordinates = parser.getListCoordinates();
+                log.info(coordinates.toString());
                 setMapCoordinates(mapCoordinates);
+                saperateData(mapCoordinates);
                 setListCoordinates(coordinates);
                 setArrayCoordinates(coordinates);
                 calculateGrid(arrayCoordinates);  // Compute grid from coordinates
@@ -230,5 +241,31 @@ public class CoordinatesParser {
             gridCoordinates[i][1] = (values[i][1] - minY) / (maxY - minY);
         }
         setGridCoordinates(gridCoordinates);
+    }
+
+    public static void saperateData(Map<String, List<Double>> mapCoordinates) {
+        List<Double> drivingLane = new ArrayList<>();
+        List<Double> parkingLane = new ArrayList<>();
+        List<Double> footpathLane = new ArrayList<>();
+
+        for (Map.Entry<String, List<Double>> entry : mapCoordinates.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith("ID_PARKING_LAY_BY_")) {
+                parkingLane.addAll(entry.getValue());
+            } else if (key.startsWith("ID_DRIVINGLANE_")) {
+                drivingLane.addAll(entry.getValue());
+            } else if (key.startsWith("ID_FOOTPATH_")) {
+                footpathLane.addAll(entry.getValue());
+            }
+        }
+
+        // Create the List<List<Double>> and add each lane list to it
+        List<List<Double>> laneLists = new ArrayList<>();
+        laneLists.add(footpathLane);
+        log.info("Footpath "  + footpathLane.toString());
+        laneLists.add(drivingLane);
+        //laneLists.add(parkingLane);
+        //setLaneLists(laneLists);
+
     }
 }

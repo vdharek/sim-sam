@@ -1,6 +1,8 @@
-package src.Env;
+package src.model;
 
 import jason.environment.Environment;
+
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -17,7 +19,7 @@ public class Env extends Environment {
 	private static final java.util.logging.Logger log = Logger.getLogger(Env.class.getName());
 
 	// Path to the GML file that contains the coordinate information.
-	private static final String path = "./gmlFiles/PockelStrasse.gml";
+	private static final String path = "./gmlFiles/Frankfurt_Street_Setting_LOD3.gml";
 
 	// AgentModel represents the logical model of agents in the environment.
 	private AgentModel agentModel;
@@ -43,6 +45,8 @@ public class Env extends Environment {
 				coordinatesParser.getGridWidth(),
 				coordinatesParser.getGridHeight(),
 				coordinatesParser.getArrayCoordinates(),
+				coordinatesParser.getLaneLists(),
+				coordinatesParser.getMapCoordinates(),
 				coordinatesParser.getMinMax()
 		);
 
@@ -52,4 +56,5 @@ public class Env extends Environment {
 		// Links the agent view to the agent model for updating the view based on model changes.
 		agentModel.setView(agentView);
 	}
+
 }

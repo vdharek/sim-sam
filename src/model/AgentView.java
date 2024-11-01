@@ -1,4 +1,4 @@
-package src.Env;
+package src.model;
 
 import jason.environment.grid.GridWorldView;
 
