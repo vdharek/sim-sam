@@ -37,7 +37,6 @@ public class AgentModel extends GridWorldModel {
 
     // Coordinates representing geographical locations.
     private final double[][] coordinates;
-    private final List<List<Double>> listCoordinates;
 
     // The minimum and maximum latitude/longitude values used for scaling.
     private final double[] minMax;
@@ -48,9 +47,9 @@ public class AgentModel extends GridWorldModel {
     private double x0;
     private double y0;
 
-    protected AgentModel(int gridWidth, int gridHeight, double[][] coordinates, List<List<Double>> listCoordinates, Map<String, List<Double>> mapCoordinates, double[] minMax) {
+    protected AgentModel(int gridWidth, int gridHeight, double[][] coordinates, Map<String, List<Double>> mapCoordinates, double[] minMax) {
         super(gridWidth, gridHeight, WALL);  // Initialize the GridWorldModel with the grid size and WALL object.
-        this.listCoordinates = listCoordinates;
+
         this.mapCoordinates = mapCoordinates;
         this.coordinates = coordinates;
         this.screenWidth = gridWidth;
@@ -59,33 +58,8 @@ public class AgentModel extends GridWorldModel {
         this.wallLocation = new HashSet<>();
 
         initializeScaling();  // Scale the real-world coordinates to fit the grid.
-        //convertToArray(listCoordinates);
-        addWall(mapCoordinates);
+        markCoordinates(mapCoordinates);
         findEmptyCellsUntilWall();
-    }
-
-    private void convertToArray(List<List<Double>> listCoordinates) {
-        /*for (List<Double> coordinates : listCoordinates) {
-            int row = coordinates.size() / 3;
-            double[][] arrayCoordinates = new double[row][2];
-            for (int j = 0; j < row; j++) {
-                arrayCoordinates[j][0] = coordinates.get(j * 3);
-                arrayCoordinates[j][1] = coordinates.get(j * 3 + 1);
-            }
-            addWall(arrayCoordinates);
-        }*/
-
-        for(int i=0; i<=listCoordinates.size(); i++) {
-            int arraySize = listCoordinates.size();
-            log.info(arraySize + " array size");
-            int row = listCoordinates.get(i).size() /3;
-            double[][] arrayCoordinates = new double[row][2];
-            for(int j=0; j<row; j++) {
-                arrayCoordinates[j][0] = listCoordinates.get(i).get(j * 3);
-                arrayCoordinates[j][1] = listCoordinates.get(i).get(j * 3 + 1);
-            }
-            //addWall(arrayCoordinates);
-        }
     }
 
     /**
@@ -98,11 +72,6 @@ public class AgentModel extends GridWorldModel {
         double minLat = minMax[2];
         double maxLat = minMax[3];
 
-        /*System.out.println("minLon: " + minLon);
-        System.out.println("maxLon: " + maxLon);
-        System.out.println("minLat: " + minLat);
-        System.out.println("maxLat: " + maxLat);*/
-
         double deltaLon = maxLon - minLon;
         double deltaLat = maxLat - minLat;
 
@@ -112,13 +81,9 @@ public class AgentModel extends GridWorldModel {
         // Calculate scaling factors for longitude and latitude.
         if (deltaLon != 0.0 && deltaLat != 0.0) {
             lonScale = (screenWidth - 1) / deltaLon;
-            //System.out.println("lonScale: " + lonScale);
             latScale = (screenHeight - 1) / deltaLat;
-            //System.out.println("latScale: " + latScale);
             x0 = -minLon * lonScale;
             y0 = maxLat * latScale;
-            //System.out.println("x0: " + x0);
-            //System.out.println("y0: " + y0);
 
             // Adjust scaling factors to maintain aspect ratio.
             if (lonScale > latScale) {
@@ -150,22 +115,10 @@ public class AgentModel extends GridWorldModel {
      * Adds walls to the grid based on real-world geographic coordinates.
      * The method connects pairs of geographic coordinates and places walls in the grid between them.
      */
-    private void addWall(Map<String, List<Double>> mapCoordinates) {
+    private void markCoordinates(Map<String, List<Double>> mapCoordinates) {
         List<Location[]> coordinatePairs = new ArrayList<>();
-        /*for (int i = 0; i < coordinates.length - 1; i++) {*/
-        /*for (int i = 0; i <coordinates.length; i++) {
-            Location start = transformCoordinates(coordinates[i][0], coordinates[i][1]);
-            //Location end = transformCoordinates(coordinates[i + 1][0], coordinates[i + 1][1]);
-            Location end = null;
-            if(i == coordinates.length-1){
-                end = transformCoordinates(coordinates[i][0], coordinates[i][1]);
-            }else{
-                end = transformCoordinates(coordinates[i + 1][0], coordinates[i + 1][1]);
-            }
-            coordinatePairs.add(new Location[]{start, end});
-        }*/
-
-
+        double maxX = minMax[1];
+        double maxY = minMax[3];
         for(Map.Entry<String, List<Double>> entry : mapCoordinates.entrySet()){
             int rows = entry.getValue().size() / 3;
             double[][] arrayCoordinates = new double[rows][2];
@@ -177,7 +130,6 @@ public class AgentModel extends GridWorldModel {
             }
             for(int j=0; j<arrayCoordinates.length; j++) {
                 Location start = transformCoordinates(arrayCoordinates[j][0], arrayCoordinates[j][1]);
-                //Location end = transformCoordinates(coordinates[j + 1][0], coordinates[j + 1][1]);
                 Location end = null;
                 if(j == arrayCoordinates.length-1){
                     end = transformCoordinates(arrayCoordinates[j][0], arrayCoordinates[j][1]);
@@ -187,7 +139,15 @@ public class AgentModel extends GridWorldModel {
                 coordinatePairs.add(new Location[]{start, end});
             }
         }
-        addWallsBetweenCoordinates(coordinatePairs);
+        Location start = transformCoordinates(0, maxY);
+        Location end = transformCoordinates(maxX, maxY);
+        coordinatePairs.add(new Location[]{start, end});
+
+        /*Location start2 = transformCoordinates(0, maxY);
+        Location end2 = transformCoordinates(0, 0);
+        coordinatePairs.add(new Location[]{start2, end2});*/
+
+        addWalls(coordinatePairs);
     }
 
     /**
@@ -195,21 +155,14 @@ public class AgentModel extends GridWorldModel {
      *
      * @param coordinates List of coordinate pairs to add walls between.
      */
-    private void addWallsBetweenCoordinates(List<Location[]> coordinates) {
+    private void addWalls(List<Location[]> coordinates) {
         for (Location[] pair : coordinates) {
             if (pair.length < 2) continue;  // Skip if there are not enough points in the pair
 
             Location start = pair[0];
             Location end = pair[1];
-
-            // Skip this line if either start or end location has already been processed
-            /*if (processedLocations.contains(start) && processedLocations.contains(end)) {
-                continue;
-            }*/
-
             addWallInBetween(start, end);
 
-            // Mark both start and end as processed
             processedLocations.add(start);
             processedLocations.add(end);
         }

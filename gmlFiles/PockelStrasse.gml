@@ -46,7 +46,7 @@
     <app:Appearance>
       <app:surfaceDataMember>
         <app:ParameterizedTexture>
-          <app:imageURI>../data/textures/asphalt.jpg</app:imageURI>
+          <app:imageURI>../data/textures/asphalt.jpg</app:imageURI>ID_DRIVINGLANE_, ID_FOOTPATH_, ID_DRIVINGLANE_
           <app:wrapMode>wrap</app:wrapMode>
           <app:borderColor>0 0 0 1</app:borderColor>
           <app:target uri="#ID_DRIVINGLANE_0">

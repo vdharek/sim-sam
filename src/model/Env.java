@@ -19,7 +19,7 @@ public class Env extends Environment {
 	private static final java.util.logging.Logger log = Logger.getLogger(Env.class.getName());
 
 	// Path to the GML file that contains the coordinate information.
-	private static final String path = "./gmlFiles/Frankfurt_Street_Setting_LOD3.gml";
+	private static final String path = "./gmlFiles/PockelStrasse.gml";
 
 	// AgentModel represents the logical model of agents in the environment.
 	private AgentModel agentModel;
@@ -45,7 +45,6 @@ public class Env extends Environment {
 				coordinatesParser.getGridWidth(),
 				coordinatesParser.getGridHeight(),
 				coordinatesParser.getArrayCoordinates(),
-				coordinatesParser.getLaneLists(),
 				coordinatesParser.getMapCoordinates(),
 				coordinatesParser.getMinMax()
 		);
