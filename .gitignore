@@ -1,0 +1,40 @@
+# Ignore Gradle build directory
+/build/
+/.gradle/
+
+# Ignore IntelliJ IDEA project files
+.idea/
+/*.iml
+/out/
+*.iws
+
+# Ignore build output directories
+/build/
+/out/
+
+# Ignore compiled Java files
+*.class
+
+# Ignore IntelliJ IDEA workspace settings
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries/
+.idea/assetWizardSettings.xml
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore generated files and backups
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+
+# Ignore Gradle wrapper files
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!gradlew
+!gradlew.bat
