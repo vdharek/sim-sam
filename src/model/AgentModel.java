@@ -17,9 +17,9 @@ public class AgentModel extends GridWorldModel {
 
     private static final Logger log = Logger.getLogger(AgentModel.class.getName());
 
-    public static final int WALL = 4;
-    public static final int AGENT = 32;
-    public static final int OBSTACLE = 2;
+    public static final int BRICKS = 4;
+    public static final int AGENT = 16;
+    public static final int OBSTACLE = 8;
 
     public final Set<Location> wallLocation = new HashSet<>();
     private final ArrayList<Location> processedLocations = new ArrayList<>();
@@ -36,6 +36,14 @@ public class AgentModel extends GridWorldModel {
     // Additional variables
     List<Location> agentLocations = new ArrayList<>();
     private int maxAgents;
+
+    public int getMaxAgents() {
+        return maxAgents;
+    }
+
+    public void setMaxAgents(int maxAgents) {
+        this.maxAgents = maxAgents;
+    }
 
     public AgentModel(int gridWidth, int gridHeight, double[][] coordinates,
                       Map<String, List<Double>> mapCoordinates, double[] minMax, int AGENTS) {
@@ -141,7 +149,7 @@ public class AgentModel extends GridWorldModel {
         while (true) {
             Location loc = new Location(x, y);
             if (wallLocation.add(loc)) {
-                add(WALL, loc);
+                add(BRICKS, loc);
             }
             if (x == end.x && y == end.y) break;
             int e2 = 2 * err;
@@ -153,7 +161,7 @@ public class AgentModel extends GridWorldModel {
     private void findEmptyCellsUntilWall() {
         for (int x = 0; x < getWidth(); x++) {
             for (int y = 0; y < getHeight(); y++) {
-                if (hasObject(WALL, x, y)) break;
+                if (hasObject(BRICKS, x, y)) break;
                 paintEmptyCells(x, y);
             }
         }
@@ -168,7 +176,7 @@ public class AgentModel extends GridWorldModel {
 
     private void markEmptyInDirection(int startX, int startY, int dx, int dy) {
         int x = startX, y = startY;
-        while (x >= 0 && x < getWidth() && y >= 0 && y < getHeight() && !hasObject(WALL, x, y)) {
+        while (x >= 0 && x < getWidth() && y >= 0 && y < getHeight() && !hasObject(BRICKS, x, y)) {
             add(OBSTACLE, x, y);
             x += dx;
             y += dy;
@@ -246,7 +254,7 @@ public class AgentModel extends GridWorldModel {
 
     // Checks if a location is free of obstacles and walls
     private boolean isLocationFree(Location loc) {
-        return !hasObject(WALL, loc) && !hasObject(OBSTACLE, loc);
+        return !hasObject(BRICKS, loc) && !hasObject(OBSTACLE, loc);
     }
 
     // Returns neighboring locations around a given cell
@@ -289,4 +297,5 @@ public class AgentModel extends GridWorldModel {
             agentLocations.set(agentID, newLocation); // Update the agent's location in the list
         }
     }
+
 }

@@ -36,7 +36,7 @@ public class AgentView extends GridWorldView {
         super.draw(g, x, y, object);  // Call the superclass method for default drawing behavior.
 
         // Check and draw objects in the order of priority: WALL > OBSTACLE > AGENTS.
-        if ((object & AgentModel.WALL) != 0) {
+        if ((object & AgentModel.BRICKS) != 0) {
             // If the object is a WALL, set color to black and fill the corresponding grid cell.
             g.setColor(Color.BLACK);
             g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);

@@ -2,7 +2,7 @@ MAS project{
 
     infrastructure : centralized
 
-    environment : src.model.Env(2)
+    environment : src.model.Env(10)
 
     agents:
         agent1;

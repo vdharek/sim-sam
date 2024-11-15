@@ -1,14 +1,25 @@
-// agent1.asl
+// Agent alice
 
+/* Initial beliefs */
 !start.
 
-// Plan to start the agent
-+!start : true <-
-    .print("Starting the agent...");
-    greet("Hello from agent1");   // Directly invoking the 'greet' action
-    move;                         // Directly invoking the 'move' action
-    .print("Actions executed.").
+/* Plans */
 
-// Optional: Handle feedback if the environment adds percepts
+// Starting plan
++!start : true <-
+    .print("Agent started...");
+    !seek(agent2).
+
+// Seek target agent
++!seek(Target) : true <-
+    .print("Seeking ", Target);
+    move.
+
+// React when agents are neighbors
++neighbor(agent1, agent2) : true <-
+    .print("Agent1 and Agent2 are neighbors.");
+    greet("Hello from agent1!").
+
+// Handle greeting acknowledgment
 +greeted(Message) : true <-
-    .print("Received feedback: ", Message).
+    .print("Greeting acknowledged: ", Message).
