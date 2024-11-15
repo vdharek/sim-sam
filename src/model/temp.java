@@ -1,3 +1,4 @@
+/*
 package src.model;
 
 import jason.environment.grid.GridWorldModel;
@@ -8,17 +9,18 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Logger;
 
-/**
+*
  * The {@code AgentModel} class represents the logical model of a grid-based environment.
  * It extends the {@link GridWorldModel} class from Jason and includes methods to handle
  * agents, walls, and scaling of geographic coordinates to fit the grid.
- */
-public class AgentModel extends GridWorldModel {
+
+
+public class temp extends GridWorldModel {
 
     private static final Logger log = Logger.getLogger(AgentModel.class.getName());
 
     public static final int WALL = 4;
-    public static final int AGENT = 32;
+    public static final int AGENTS = 32;
     public static final int OBSTACLE = 2;
 
     public final Set<Location> wallLocation = new HashSet<>();
@@ -31,32 +33,18 @@ public class AgentModel extends GridWorldModel {
     private double latScale;
     private double x0;
     private double y0;
-    Map<Integer, Integer> AGENTS = new HashMap<>();
-
-    // Additional variables
-    List<Location> agentLocations = new ArrayList<>();
-    private int maxAgents;
 
     public AgentModel(int gridWidth, int gridHeight, double[][] coordinates,
-                      Map<String, List<Double>> mapCoordinates, double[] minMax, int AGENTS) {
-        super(gridWidth, gridHeight, AGENT);
+                      Map<String, List<Double>> mapCoordinates, double[] minMax) {
+        super(gridWidth, gridHeight, AGENTS);
         this.screenWidth = gridWidth;
         this.screenHeight = gridHeight;
         this.minMax = minMax;
-        this.maxAgents = AGENTS;
 
         initializeScaling();
         markCoordinates(mapCoordinates);
         findEmptyCellsUntilWall();
         initiateAgents();
-        setAGENTS();
-    }
-
-    void setAGENTS(){
-        AGENTS.clear();
-        for(int i=1; i<=10; i++){
-            AGENTS.put(i, i);
-        }
     }
 
     private double screenWindow = screenSize.getWidth();
@@ -175,7 +163,11 @@ public class AgentModel extends GridWorldModel {
         }
     }
 
-    public void initiateAgents() {
+    private void initiateAgents() {
+        int centerX = getWidth() / 2;
+        int centerY = getHeight() / 2;
+        Location center = new Location(centerX, centerY);
+
         // Step 1: Find all empty cells
         List<Location> emptyCells = new ArrayList<>();
         for (int x = 0; x < getWidth(); x++) {
@@ -187,106 +179,71 @@ public class AgentModel extends GridWorldModel {
             }
         }
 
-        Collections.shuffle(emptyCells);
+        // Step 2: Sort empty cells by distance from the center
+        emptyCells.sort(Comparator.comparingDouble(loc -> distance(loc, center)));
 
         // Step 3: Place agents, ensuring each location is unique
         int agentsAdded = 0;
+        int maxAgents = 10; // Set the number of agents you want
+
+        Set<Location> agentLocations = new HashSet<>(); // Track locations where agents are added
 
         for (Location loc : emptyCells) {
             if (agentsAdded >= maxAgents) {
                 break;
             }
             if (!agentLocations.contains(loc)) { // Only add if this location is unique
-                add(AGENT, loc);                // Add agent to this location
-                agentLocations.add(loc);       // Mark location as occupied
+                add(AGENTS, loc);                // Add agent to this location
+                agentLocations.add(loc);          // Mark location as occupied
                 agentsAdded++;
                 log.info("Agent added at: " + loc); // Log each agent's position for debugging
             }
         }
     }
 
-    public Location getAgentLocation(int agentID) {
-        if (agentID >= 0 && agentID < agentLocations.size()) {
-            return agentLocations.get(agentID);
-        }
-        return null; // Return null if the agentID is invalid
-    }
+private void initiateAgents() {
+        int maxAgents = 10; // Adjust the number of agents you want
 
-    public boolean isNeighbor(Location loc1, Location loc2) {
-        return Math.abs(loc1.x - loc2.x) <= 1 && Math.abs(loc1.y - loc2.y) <= 1;
-    }
-
-    // Calculates the next step towards the target location, moving only one cell at a time
-    public Location getNextStepTowards(Location from, Location to) {
-        int newX = from.x;
-        int newY = from.y;
-
-        if (from.x < to.x) newX++;
-        else if (from.x > to.x) newX--;
-
-        if (from.y < to.y) newY++;
-        else if (from.y > to.y) newY--;
-
-        Location nextLocation = new Location(newX, newY);
-
-        // Ensure the next step is valid and not occupied by an obstacle or wall
-        if (isLocationFree(nextLocation)) {
-            return nextLocation;
-        }
-        // If the direct path is blocked, fallback to an adjacent open cell
-        List<Location> neighbors = getNeighbors(from);
-        for (Location neighbor : neighbors) {
-            if (isLocationFree(neighbor) && isCloser(neighbor, to, from)) {
-                return neighbor;
-            }
-        }
-        // Return the current location if no valid move is found
-        return from;
-    }
-
-    // Checks if a location is free of obstacles and walls
-    private boolean isLocationFree(Location loc) {
-        return !hasObject(WALL, loc) && !hasObject(OBSTACLE, loc);
-    }
-
-    // Returns neighboring locations around a given cell
-    public List<Location> getNeighbors(Location loc) {
-        List<Location> neighbors = new ArrayList<>();
-        int x = loc.x;
-        int y = loc.y;
-
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                if (dx != 0 || dy != 0) {
-                    Location neighbor = new Location(x + dx, y + dy);
-                    if (isLocationFree(neighbor)) {
-                        neighbors.add(neighbor);
-                    }
+        // Step 1: Find all empty cells
+        List<Location> emptyCells = new ArrayList<>();
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = 0; y < getHeight(); y++) {
+                Location loc = new Location(x, y);
+                if (isLocationFree(loc)) {
+                    emptyCells.add(loc);
                 }
             }
         }
-        return neighbors;
+
+        // Step 2: Shuffle the empty cells to randomize agent placement
+        Collections.shuffle(emptyCells);
+
+        // Step 3: Place agents in randomly shuffled locations
+        int agentsAdded = 0;
+        for (Location loc : emptyCells) {
+            if (agentsAdded >= maxAgents) {
+                break;
+            }
+            add(AGENTS, loc); // Add agent to this location
+            agentsAdded++;
+            log.info("Agent added at: " + loc); // Log each agent's position for verification
+        }
     }
 
-    // Helper to check if a move brings the agent closer to the target
-    private boolean isCloser(Location candidate, Location target, Location current) {
-        return distance(candidate, target) < distance(current, target);
-    }
 
-    // Calculates the distance between two locations
+
+
+    // Helper method to calculate the Euclidean distance between two locations
     private double distance(Location loc1, Location loc2) {
         int dx = loc1.x - loc2.x;
         int dy = loc1.y - loc2.y;
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    // Method to move agent to a new location
-    public void moveAgent(int agentID, Location newLocation) {
-        if (agentID >= 0 && agentID < agentLocations.size()) {
-            Location currentLocation = agentLocations.get(agentID);
-            remove(AGENT, currentLocation);  // Remove agent from the current location
-            add(AGENT, newLocation);         // Place agent at the new location
-            agentLocations.set(agentID, newLocation); // Update the agent's location in the list
-        }
+    // Helper method to check if a given location is free
+    private boolean isLocationFree(Location loc) {
+        return !hasObject(WALL, loc) && !hasObject(OBSTACLE, loc);
     }
+
 }
+*/

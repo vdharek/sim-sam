@@ -15,12 +15,13 @@ public class AgentView extends GridWorldView {
      *
      * @param model the {@link AgentModel} representing the underlying grid model of the environment.
      */
+
     public AgentView(AgentModel model) {
         // Call the superclass constructor to initialize the view with the model and window title.
-        super(model, "Environment", model.getWidth());
-        setResizable(true);  // Allow the window to be resized.
+        super(model, "Environment", (int)model.getScreenWindow());
         setVisible(true);    // Make the window visible.
     }
+
 
     /**
      * Overrides the {@code draw} method to render specific objects in the grid, including walls, obstacles, and agents.
@@ -43,7 +44,7 @@ public class AgentView extends GridWorldView {
             // If the object is an OBSTACLE, set color to gray and fill the corresponding grid cell.
             g.setColor(Color.GRAY);
             g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
-        } else if ((object & AgentModel.AGENTS) != 0) {
+        } else if ((object & AgentModel.AGENT) != 0) {
             // If the object is an AGENT, set color to red and draw a filled oval in the grid cell.
             g.setColor(Color.RED);
             g.fillOval(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);

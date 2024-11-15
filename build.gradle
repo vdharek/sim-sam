@@ -17,6 +17,7 @@ repositories {
 dependencies {
     implementation 'io.github.jason-lang:jason-interpreter:3.3.0-SNAPSHOT'
     implementation 'org.jgrapht:jgrapht-core:1.5.1'
+    implementation 'org.junit.jupiter:junit-jupiter-api:5.5.1'
 
     // to use locally installed jars:
     implementation fileTree(dir: 'lib', include: '*.jar')

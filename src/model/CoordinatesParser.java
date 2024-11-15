@@ -1,7 +1,9 @@
 package src.model;
 
+import java.awt.*;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.example.*;
@@ -20,6 +22,34 @@ public class CoordinatesParser {
     private static int gridHeight;               // Height of the grid
     private static int gridWidth;                // Width of the grid
     private double[] minMax = new double[4];
+    private static double cellSize;
+    private static int numRows;
+
+    public int getNumCols() {
+        return numCols;
+    }
+
+    public static void setNumCols(int numCols) {
+        CoordinatesParser.numCols = numCols;
+    }
+
+    public int getNumRows() {
+        return numRows;
+    }
+
+    public static void setNumRows(int numRows) {
+        CoordinatesParser.numRows = numRows;
+    }
+
+    private static int numCols;
+
+    public double getCellSize() {
+        return cellSize;
+    }
+
+    public static void setCellSize(double cellSize) {
+        CoordinatesParser.cellSize = cellSize;
+    }
 
     public List<List<Double>> getLaneLists() {
         return laneLists;
@@ -177,9 +207,7 @@ public class CoordinatesParser {
                 GMLParser.main(new String[]{});  // Invoke main parser
                 Map<String, List<Double>> mapCoordinates = parser.getMapCoordinates();
                 List<Double> coordinates = parser.getListCoordinates();
-                log.info(coordinates.toString());
                 setMapCoordinates(mapCoordinates);
-                saperateData(mapCoordinates);
                 setListCoordinates(coordinates);
                 setArrayCoordinates(coordinates);
                 calculateGrid(arrayCoordinates);  // Compute grid from coordinates
@@ -192,11 +220,6 @@ public class CoordinatesParser {
         }
     }
 
-    /**
-     * Converts geographic coordinates into grid coordinates and calculates the grid's dimensions based on the min/max values of longitude and latitude.
-     *
-     * @param values a 2D array of geographic coordinates.
-     */
     public void calculateGrid(double[][] values) {
         double[][] gridCoordinates = new double[values.length][2];
         double[] minMax = new double[4];
@@ -243,29 +266,12 @@ public class CoordinatesParser {
         setGridCoordinates(gridCoordinates);
     }
 
-    public static void saperateData(Map<String, List<Double>> mapCoordinates) {
-        List<Double> drivingLane = new ArrayList<>();
-        List<Double> parkingLane = new ArrayList<>();
-        List<Double> footpathLane = new ArrayList<>();
 
-        for (Map.Entry<String, List<Double>> entry : mapCoordinates.entrySet()) {
-            String key = entry.getKey();
-            if (key.startsWith("ID_PARKING_LAY_BY_")) {
-                parkingLane.addAll(entry.getValue());
-            } else if (key.startsWith("ID_DRIVINGLANE_")) {
-                drivingLane.addAll(entry.getValue());
-            } else if (key.startsWith("ID_FOOTPATH_")) {
-                footpathLane.addAll(entry.getValue());
-            }
-        }
 
-        // Create the List<List<Double>> and add each lane list to it
-        List<List<Double>> laneLists = new ArrayList<>();
-        laneLists.add(footpathLane);
-        log.info("Footpath "  + footpathLane.toString());
-        laneLists.add(drivingLane);
-        //laneLists.add(parkingLane);
-        //setLaneLists(laneLists);
 
-    }
+
+
+
+
+
 }

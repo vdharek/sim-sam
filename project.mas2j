@@ -1,10 +1,12 @@
 MAS project{
 
-    environment : src.model.Env
+    infrastructure : centralized
+
+    environment : src.model.Env(2)
 
     agents:
         agent1;
+        agent2;
 
     aslSourcePath : "src/agt";
-
 }
