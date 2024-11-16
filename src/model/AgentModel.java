@@ -31,7 +31,6 @@ public class AgentModel extends GridWorldModel {
     private double latScale;
     private double x0;
     private double y0;
-    Map<Integer, Integer> AGENTS = new HashMap<>();
 
     // Additional variables
     List<Location> agentLocations = new ArrayList<>();
@@ -57,14 +56,6 @@ public class AgentModel extends GridWorldModel {
         markCoordinates(mapCoordinates);
         findEmptyCellsUntilWall();
         initiateAgents();
-        setAGENTS();
-    }
-
-    void setAGENTS(){
-        AGENTS.clear();
-        for(int i=1; i<=10; i++){
-            AGENTS.put(i, i);
-        }
     }
 
     private double screenWindow = screenSize.getWidth();
