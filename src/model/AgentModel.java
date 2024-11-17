@@ -31,18 +31,19 @@ public class AgentModel extends GridWorldModel {
     private double latScale;
     private double x0;
     private double y0;
-    Map<Integer, Integer> AGENTS = new HashMap<>();
+    int agentsAdded = 0;
+    //Map<Integer, Integer> AGENTS = new HashMap<>();
 
     // Additional variables
     List<Location> agentLocations = new ArrayList<>();
-    private int maxAgents;
+    private int totalAgents;
 
-    public int getMaxAgents() {
-        return maxAgents;
+    int getTotalAgents() {
+        return totalAgents;
     }
 
-    public void setMaxAgents(int maxAgents) {
-        this.maxAgents = maxAgents;
+    public void setTotalAgents(int totalAgents) {
+        this.totalAgents = totalAgents;
     }
 
     public AgentModel(int gridWidth, int gridHeight, double[][] coordinates,
@@ -51,21 +52,19 @@ public class AgentModel extends GridWorldModel {
         this.screenWidth = gridWidth;
         this.screenHeight = gridHeight;
         this.minMax = minMax;
-        this.maxAgents = AGENTS;
+        this.totalAgents = AGENTS;
 
         initializeScaling();
         markCoordinates(mapCoordinates);
         findEmptyCellsUntilWall();
-        initiateAgents();
-        setAGENTS();
     }
 
-    void setAGENTS(){
+    /*void setAGENTS(){
         AGENTS.clear();
         for(int i=1; i<=10; i++){
             AGENTS.put(i, i);
         }
-    }
+    }*/
 
     private double screenWindow = screenSize.getWidth();
 
@@ -183,38 +182,20 @@ public class AgentModel extends GridWorldModel {
         }
     }
 
-    public void initiateAgents() {
-        // Step 1: Find all empty cells
-        List<Location> emptyCells = new ArrayList<>();
-        for (int x = 0; x < getWidth(); x++) {
-            for (int y = 0; y < getHeight(); y++) {
-                Location loc = new Location(x, y);
-                if (isLocationFree(loc)) {
-                    emptyCells.add(loc);
-                }
-            }
-        }
-
-        Collections.shuffle(emptyCells);
-
-        // Step 3: Place agents, ensuring each location is unique
-        int agentsAdded = 0;
-
-        for (Location loc : emptyCells) {
-            if (agentsAdded >= maxAgents) {
-                break;
-            }
-            if (!agentLocations.contains(loc)) { // Only add if this location is unique
-                add(AGENT, loc);                // Add agent to this location
-                agentLocations.add(loc);       // Mark location as occupied
-                agentsAdded++;
-                log.info("Agent added at: " + loc); // Log each agent's position for debugging
-            }
+    public void initiateAgents(Location loc) {
+        if (!agentLocations.contains(loc)) {
+            add(AGENT, loc);
+            setAgPos(agentsAdded, loc);
+            agentsAdded++;
+            setTotalAgents(agentsAdded);
+            agentLocations.add(loc);
+            log.info("Agent added at: " + loc);
         }
     }
 
     public Location getAgentLocation(int agentID) {
         if (agentID >= 0 && agentID < agentLocations.size()) {
+            log.info("Agent location: " + getAgPos(agentID));
             return agentLocations.get(agentID);
         }
         return null; // Return null if the agentID is invalid
