@@ -5,8 +5,7 @@ MAS project{
     environment : src.model.Env(0)
 
     agents:
-        agent1;
-        agent2;
+        car;
 
     aslSourcePath : "src/agt";
 }

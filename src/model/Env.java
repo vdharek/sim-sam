@@ -8,175 +8,140 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Env extends Environment implements I_agtClickListener{
+public class Env extends Environment implements I_agtClickListener {
 
-	private static final Logger log = Logger.getLogger(Env.class.getName());
-	private static final String path = "./gmlFiles/PockelStrasse.gml";
-	private AgentModel agentModel;
-	private AgentView agentView;
-	String[] args;
-	Thread simulationThread;
+    private static final Logger log = Logger.getLogger(Env.class.getName());
+    private static final String path = "./gmlFiles/PockelStrasse.gml";
+    private EnvModel envModel;
+    private AgentModel agentModel;
+    private Thread simulationThread;
 
-	@Override
-	public void init(String[] args) {
-		super.init(args);
-		this.args = args;
-		initAgents(args);
-	}
+    private Location agent5StartLocation; // Agent 5's starting position
+    private int currentTargetAgent = 0; // Tracks the current agent being approached
 
-	void initAgents(String[] args){
-		try {
-			// Parse coordinates and initialize agent model and view
-			CoordinatesParser coordinatesParser = new CoordinatesParser(path);
+    @Override
+    public void init(String[] args) {
+        super.init(args);
+        initAgents(args);
+    }
 
-			agentModel = new AgentModel(
-					coordinatesParser.getGridWidth(),
-					coordinatesParser.getGridHeight(),
-					coordinatesParser.getGridCoordinates(),
-					coordinatesParser.getMapCoordinates(),
-					coordinatesParser.getMinMax(),
-					Integer.parseInt(args[0])
-			);
+    void initAgents(String[] args) {
+        try {
+            // Initialize environment model
+            CoordinatesParser coordinatesParser = new CoordinatesParser(path);
 
-			agentView = new AgentView(this, agentModel);
-			agentModel.setView(agentView);
+            envModel = new EnvModel(
+                    coordinatesParser.getGridWidth(),
+                    coordinatesParser.getGridHeight(),
+                    coordinatesParser.getMapCoordinates(),
+                    coordinatesParser.getMinMax(),
+                    Integer.parseInt(args[0])
+            );
+            this.agentModel = new AgentModel(envModel);
+            AgentView agentView = new AgentView(this, envModel);
+            envModel.setView(agentView);
 
-			log.info("Environment initialized with parameters: " + Arrays.toString(args));
-			//startSimulationLoop(); // Start the simulation loop
-		} catch (Exception e) {
-			log.log(Level.SEVERE, "Failed to initialize environment: " + e.getMessage(), e);
-		}
-	}
+            log.info("Environment initialized with parameters: " + Arrays.toString(args));
 
-	@Override
-	public boolean executeAction(String agentName, Structure action) {
-		log.info("Executing action for agent: " + agentName + " Action: " + action.getFunctor());
+            // Store Agent 5's starting location
+            agent5StartLocation = agentModel.getAgentLocation(4);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Failed to initialize environment: " + e.getMessage(), e);
+        }
+    }
 
-		try {
-			for(int i=0; i<agentModel.getTotalAgents(); i++){
-				int agentID = i;
-				int targetAgentID = (i +1) % agentModel.getTotalAgents();
+    void startSimulationLoop() {
+        log.info("Simulation started.");
+        simulationThread = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(200); // Adjust as needed
 
-				Location currentLoc = agentModel.getAgentLocation(agentID);
-				Location targetLoc = agentModel.getAgentLocation(targetAgentID);
+                    Location agent5Loc = agentModel.getAgentLocation(4); // Get Agent 5's location
+                    Location targetLoc;
+                    if (currentTargetAgent < 4) {
+                        targetLoc = agentModel.getAgentLocation(currentTargetAgent);
+                    } else {
+                        targetLoc = agent5StartLocation;
+                    }
 
-				if (action.getFunctor().equals("move")) {
-					return handleMoveAction(agentID, targetAgentID, currentLoc, targetLoc);
-				} else if (action.getFunctor().equals("greet")) {
-					return handleGreetAction(action);
-				} else {
-					log.warning("Unknown action: " + action.getFunctor());
-					return false;
-				}
-			}
-			//int agentID = 0;
-			//int targetAgentID = 1;
+                    if (agent5Loc.equals(agent5StartLocation) && currentTargetAgent >= 4) {
+                        log.info("Agent 5 has returned to its starting position. Simulation ends.");
+                        stopSimulationLoop();
+                        break;
+                    }
 
-		} catch (Exception e) {
-			log.log(Level.SEVERE, "Error executing action: " + e.getMessage(), e);
-		}
-		return false;
-	}
+                    if (agent5Loc.equals(targetLoc)) {
+                        if (currentTargetAgent < 4) {
+                            log.info("Agent 5 greeted Agent " + (currentTargetAgent + 1) + ".");
+                            handleGreetAction("hello from Agent 5");
+                        }
+                        currentTargetAgent++;
+                        continue; // Move to the next target in the next iteration
+                    }
 
-	void startSimulationLoop() {
-		simulationThread = new Thread(() -> {
-			while (true) {
-				try {
-					Thread.sleep(500); //movement speed
+                    // Handle movement
+                    Location nextStep = agentModel.getNextStepTowards(agent5Loc, targetLoc);
+                    //currentTargetAgent++;
+                    if (nextStep == null) {
+                        log.info("Footpath encountered by Agent 5. Redirecting to next agent.");
+                        currentTargetAgent++;
+                        continue; // Redirect to next agent
+                    } else {
+                        agentModel.moveAgent(4, nextStep); // Move Agent 5
+                        //log.info("Agent 5 moved to " + nextStep);
+                    }
 
-					// Periodically update agents' positions and interactions
-					for (int agentID = 0; agentID < agentModel.getTotalAgents(); agentID++) {
-						int targetAgentID = (agentID + 1) % agentModel.getTotalAgents();
-						Location currentLoc = agentModel.getAgentLocation(agentID);
-						Location targetLoc = agentModel.getAgentLocation(targetAgentID);
+                    updatePercepts();
+                } catch (InterruptedException e) {
+                    log.severe("Simulation loop interrupted: " + e.getMessage());
+                    break;
+                }
+            }
+        });
+        simulationThread.start();
+    }
 
-						if (currentLoc != null && targetLoc != null) {
-							handleMoveAction(agentID, targetAgentID, currentLoc, targetLoc);
-						}
-					}
+    private void handleGreetAction(String message) {
+        if (currentTargetAgent < 4) {
+            log.info("Agent 5 greets Agent " + (currentTargetAgent + 1) + " with message: " + message);
+            addPercept("agent" + (currentTargetAgent + 1),
+                    Literal.parseLiteral("greeted(\"" + message + "\")"));
+        }
+    }
 
-					//updatePercepts();
-				} catch (InterruptedException e) {
-					log.severe("Simulation loop interrupted: " + e.getMessage());
-					break;
-				}
-			}
-		});
-		simulationThread.start();
-	}
+    void updatePercepts() {
+        clearAllPercepts();
+        for (int agentID = 0; agentID < envModel.getTotalAgents(); agentID++) {
+            Location loc = agentModel.getAgentLocation(agentID);
+            if (loc != null) {
+                addPercept("agent" + (agentID + 1),
+                        Literal.parseLiteral("position(agent" + (agentID + 1) + ", " + loc.x + ", " + loc.y + ")"));
+            }
+        }
 
-	void updatePercepts() {
-		clearAllPercepts();
-		for (int agentID = 0; agentID < agentModel.getTotalAgents(); agentID++) {
-			Location loc = agentModel.getAgentLocation(agentID);
-			if (loc != null) {
-				addPercept("agent" + (agentID + 1),
-						Literal.parseLiteral("position(agent" + (agentID + 1) + ", " + loc.x + ", " + loc.y + ")"));
-			}
-		}
-	}
+        // Detect if Agent 5 encounters FOOTPATH
+        Location agent5Loc = agentModel.getAgentLocation(4);
+        if (agent5Loc != null || envModel.hasObject(EnvModel.FOOTPATH, agent5Loc)) {
+            //addPercept("agent5", Literal.parseLiteral("encountered_footpath(" + agent5Loc.x + ", " + agent5Loc.y + ")"));
+            addPercept("agent5", Literal.parseLiteral("ENV Class: FOOTPATH encountered by Agent 5"));
+        }
+    }
 
-	private boolean handleMoveAction(int agentID, int targetAgentID, Location currentLoc, Location targetLoc) {
-		log.info("Move action received");
+    void stopSimulationLoop() {
+        if (simulationThread != null && simulationThread.isAlive()) {
+            simulationThread.interrupt();
+        }
+        log.info("Simulation stopped.");
+    }
 
-		if (currentLoc == null || targetLoc == null) {
-			log.warning("Current or target location is null.");
-			return false;
-		}
+    @Override
+    public void onStartClick() {
+        startSimulationLoop();
+    }
 
-		if (agentModel.isNeighbor(currentLoc, targetLoc)) {
-			// Agents are neighbors, add percept and stop movement
-			addPercept("agent" + (agentID + 1), Literal.parseLiteral("neighbor(agent" + (agentID + 1) + ", agent" + (targetAgentID + 1) + ")"));
-			log.info("Agent" + agentID + " and Agent" + targetAgentID + " are neighbors.");
-		} else {
-			// Move agent towards the target
-			Location nextStep = agentModel.getNextStepTowards(currentLoc, targetLoc);
-			if (nextStep != null) {
-				agentModel.moveAgent(agentID, nextStep);
-				log.info("Agent " + agentID + " moved to: " + nextStep);
-
-				// Update percepts
-				clearPercepts("agent" + (agentID + 1));
-				addPercept("agent" + (agentID + 1), Literal.parseLiteral("position(agent" + (agentID + 1) + ", " + nextStep.x + ", " + nextStep.y + ")"));
-			} else {
-				log.warning("No valid next step found for agent " + agentID);
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private boolean handleGreetAction(Structure action) {
-		log.info("Greet action received");
-		if (action.getTerms().isEmpty()) {
-			log.warning("Greet action has no message.");
-			return false;
-		}
-
-		String message = ((Atom) action.getTerm(0)).toString();
-		log.info("Agent greets another agent with message: " + message);
-
-		addPercept("agent2", Literal.parseLiteral("greeted(\"" + message + "\")"));
-		return true;
-	}
-
-	void stopSimulationLoop() {
-
-		// Interrupt the thread to ensure it stops if sleeping
-		if (simulationThread != null && simulationThread.isAlive()) {
-			simulationThread.interrupt();
-		}
-
-		log.info("Simulation stopped and reset.");
-	}
-
-	@Override
-	public void onStartClick() {
-		startSimulationLoop();
-	}
-
-	@Override
-	public void onStopClick() {
-		stopSimulationLoop();
-	}
+    @Override
+    public void onStopClick() {
+        stopSimulationLoop();
+    }
 }

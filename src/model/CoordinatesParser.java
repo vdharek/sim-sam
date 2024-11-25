@@ -16,50 +16,11 @@ public class CoordinatesParser {
 
     private static final Logger log = Logger.getLogger(CoordinatesParser.class.getName());
     private static Map<String, List<Double>> mapCoordinates;      // Stores named map coordinates
-    private static List<Double> listCoordinates = new ArrayList<>();  // List to store all parsed coordinates
     private static double[][] arrayCoordinates;  // 2D array representation of coordinates
-    private static double[][] gridCoordinates;  // Grid coordinates calculated from real-world data
     private static int gridHeight;               // Height of the grid
     private static int gridWidth;                // Width of the grid
     private double[] minMax = new double[4];
-    private static double cellSize;
-    private static int numRows;
 
-    public int getNumCols() {
-        return numCols;
-    }
-
-    public static void setNumCols(int numCols) {
-        CoordinatesParser.numCols = numCols;
-    }
-
-    public int getNumRows() {
-        return numRows;
-    }
-
-    public static void setNumRows(int numRows) {
-        CoordinatesParser.numRows = numRows;
-    }
-
-    private static int numCols;
-
-    public double getCellSize() {
-        return cellSize;
-    }
-
-    public static void setCellSize(double cellSize) {
-        CoordinatesParser.cellSize = cellSize;
-    }
-
-    public List<List<Double>> getLaneLists() {
-        return laneLists;
-    }
-
-    public static void setLaneLists(List<List<Double>> laneLists) {
-        CoordinatesParser.laneLists = laneLists;
-    }
-
-    private static List<List<Double>> laneLists;
     /**
      * Getter for the min/max values of coordinates.
      *
@@ -76,24 +37,6 @@ public class CoordinatesParser {
      */
     public void setMinMax(double[] minMax) {
         this.minMax = minMax;
-    }
-
-    /**
-     * Getter for the grid coordinates.
-     *
-     * @return a 2D array of grid coordinates.
-     */
-    public double[][] getGridCoordinates() {
-        return gridCoordinates;
-    }
-
-    /**
-     * Setter for the grid coordinates.
-     *
-     * @param gridCoordinates a 2D array of grid coordinates.
-     */
-    public static void setGridCoordinates(double[][] gridCoordinates) {
-        CoordinatesParser.gridCoordinates = gridCoordinates;
     }
 
     /**
@@ -151,24 +94,6 @@ public class CoordinatesParser {
     }
 
     /**
-     * Getter for the list of coordinates.
-     *
-     * @return a list of coordinates.
-     */
-    public List<Double> getListCoordinates() {
-        return listCoordinates;
-    }
-
-    /**
-     * Setter for the list of coordinates.
-     *
-     * @param listCoordinates a list of coordinates.
-     */
-    public static void setListCoordinates(List<Double> listCoordinates) {
-        CoordinatesParser.listCoordinates = listCoordinates;
-    }
-
-    /**
      * Getter for the array of coordinates.
      *
      * @return a 2D array of coordinates.
@@ -208,10 +133,9 @@ public class CoordinatesParser {
                 Map<String, List<Double>> mapCoordinates = parser.getMapCoordinates();
                 List<Double> coordinates = parser.getListCoordinates();
                 setMapCoordinates(mapCoordinates);
-                setListCoordinates(coordinates);
                 setArrayCoordinates(coordinates);
                 calculateGrid(arrayCoordinates);  // Compute grid from coordinates
-                log.info("Coordinates parsed and stored.");
+                //log.info("Coordinates parsed and stored.");
             } else {
                 log.warning("GML file is not valid.");
             }
@@ -221,7 +145,6 @@ public class CoordinatesParser {
     }
 
     public void calculateGrid(double[][] values) {
-        double[][] gridCoordinates = new double[values.length][2];
         double[] minMax = new double[4];
 
         // Initialize min/max values.
@@ -251,27 +174,11 @@ public class CoordinatesParser {
         double cellSize = 0.1;
         int numRows = (int) Math.ceil((maxX - minX) / cellSize);
         int numCols = (int) Math.ceil((maxY - minY) / cellSize);
-        log.info("GridRows: " + numRows);
-        log.info("GridCols: " + numCols);
 
         // Set the grid height and width.
         setGridHeight(numRows);
         setGridWidth(numCols);
 
-        // Normalize the geographic coordinates into grid coordinates.
-        for (int i = 0; i < values.length; i++) {
-            gridCoordinates[i][0] = (values[i][0] - minX) / (maxX - minX);
-            gridCoordinates[i][1] = (values[i][1] - minY) / (maxY - minY);
-        }
-        setGridCoordinates(gridCoordinates);
     }
-
-
-
-
-
-
-
-
 
 }

@@ -9,6 +9,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
 import java.util.logging.Logger;
 
 /**
@@ -23,18 +26,15 @@ public class AgentView extends GridWorldView {
      *
      * @param model the {@link AgentModel} representing the underlying grid model of the environment.
      */
+    //AgentModel agentModel;
     AgentModel agentModel;
-    Env env;
     I_agtClickListener iAgtClickListener;
-    int click = 0;
-    public AgentView(I_agtClickListener iAgtClickListener, AgentModel model) {
-        // Call the superclass constructor to initialize the view with the model and window title.
-        super(model, "Environment", (int)model.getScreenWindow());
+    public AgentView(I_agtClickListener iAgtClickListener, EnvModel model) {
+        super(model, "Environment", (int)model.getScreenSize());
         initializeButtons();
         setVisible(true);    // Make the window visible.
-        this.agentModel = model;
+        this.agentModel = new AgentModel(model);
         this.iAgtClickListener = iAgtClickListener;
-        this.env = new Env();
     }
 
     private JButton startButton;  // Button to start the simulation
@@ -69,15 +69,29 @@ public class AgentView extends GridWorldView {
 
         this.add(buttonPanel, BorderLayout.SOUTH);
         getCanvas().addMouseListener(new MouseListener() {
+            /*public void mouseClicked(MouseEvent e) {
+                int col = e.getX() / cellSizeW;
+                int lin = e.getY() / cellSizeH;
+                if (col >= 0 && lin >= 0 && col < getModel().getWidth() && lin < getModel().getHeight()) {
+
+                    Location loc = new Location(col, lin);
+                    //agentModel.initiateAgents(loc);
+
+                    update(col, lin);
+                    //env.updatePercepts();
+                }
+            }*/
             public void mouseClicked(MouseEvent e) {
                 int col = e.getX() / cellSizeW;
                 int lin = e.getY() / cellSizeH;
                 if (col >= 0 && lin >= 0 && col < getModel().getWidth() && lin < getModel().getHeight()) {
 
                     Location loc = new Location(col, lin);
-                    agentModel.initiateAgents(loc);
-                    update(col, lin);
-                    env.updatePercepts();
+                    //floodFillRecursive(loc, new HashSet<>());
+                    fillPolygon(loc);
+
+                    // Refresh the view to reflect changes
+                    repaint();
                 }
             }
             public void mouseExited(MouseEvent e) {}
@@ -85,35 +99,94 @@ public class AgentView extends GridWorldView {
             public void mousePressed(MouseEvent e) {}
             public void mouseReleased(MouseEvent e) {}
         });
-
     }
 
-    /**
-     * Overrides the {@code draw} method to render specific objects in the grid, including walls, obstacles, and agents.
-     *
-     * @param g      the {@link Graphics} object used for drawing.
-     * @param x      the x-coordinate in the grid.
-     * @param y      the y-coordinate in the grid.
-     * @param object the object type to be drawn (e.g., wall, obstacle, or agent).
-     */
+    private void fillPolygon(Location startLoc) {
+        Stack<Location> stack = new Stack<>();
+        Set<Location> visited = new HashSet<>();
+
+        // Push the starting location onto the stack
+        stack.push(startLoc);
+        visited.add(startLoc);
+
+        while (!stack.isEmpty()) {
+            Location loc = stack.pop();
+
+            // Mark the current location as FOOTPATH
+            agentModel.envModel.add(EnvModel.FOOTPATH, loc);
+
+            // Explore neighbors in four directions
+            for (int[] dir : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                int newX = loc.x + dir[0];
+                int newY = loc.y + dir[1];
+                Location neighbor = new Location(newX, newY);
+
+                // Skip if already visited
+                if (visited.contains(neighbor)) continue;
+
+                // Check bounds
+                if (newX >= 0 && newY >= 0 && newX < getModel().getWidth() && newY < getModel().getHeight()) {
+                    // Check if the cell is a boundary
+                    if (!agentModel.envModel.hasObject(EnvModel.FOOTPATH, neighbor) &&
+                            !agentModel.envModel.hasObject(EnvModel.DRIVING, neighbor) &&
+                            !agentModel.envModel.hasObject(EnvModel.PARKING, neighbor) &&
+                            !agentModel.envModel.hasObject(EnvModel.OBSTACLE, neighbor)) {
+                        // Push neighbor to stack
+                        stack.push(neighbor);
+                        visited.add(neighbor);
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void draw(Graphics g, int x, int y, int object) {
         super.draw(g, x, y, object);  // Call the superclass method for default drawing behavior.
 
-        // Check and draw objects in the order of priority: WALL > OBSTACLE > AGENTS.
-        if ((object & AgentModel.BRICKS) != 0) {
-            // If the object is a WALL, set color to black and fill the corresponding grid cell.
-            g.setColor(Color.BLACK);
+        //Polygon polygon = agentModel.envModel.getPolygon();
+
+        if ((object & EnvModel.FOOTPATH) != 0) {
+            g.setColor(new Color(184, 184, 184)); // Footpath color
             g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
-        } else if ((object & AgentModel.OBSTACLE) != 0) {
-            // If the object is an OBSTACLE, set color to gray and fill the corresponding grid cell.
-            g.setColor(Color.GRAY);
-            g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
-        } else if ((object & AgentModel.AGENT) != 0) {
-            // If the object is an AGENT, set color to red and draw a filled oval in the grid cell.
-            g.setColor(Color.RED);
-            g.fillOval(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
         }
+        if ((object & EnvModel.DRIVING) != 0) {
+            g.setColor(new Color(135, 135, 135)); // Driving lane color
+            g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
+        }
+        if ((object & EnvModel.PARKING) != 0) {
+            g.setColor(new Color(172, 172, 172)); // Parking color
+            g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
+        }
+        if ((object & EnvModel.AGENT) != 0) {
+            g.setColor(new Color(5, 5, 5)); // Agent color
+            g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
+        }
+        if ((object & EnvModel.STATIC_AGENT) != 0) {
+            /*g.setColor(new Color(255, 210, 0)); // Static agent color
+            g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);*/
+            g.setColor(new Color(255, 255, 255)); // Static agent color
+
+            // Increase the rectangle size slightly
+            int padding = 2; // Padding to expand the size
+            int adjustedWidth = cellSizeW + padding;
+            int adjustedHeight = cellSizeH + padding;
+
+            // Offset the position to center the larger rectangle
+            int adjustedX = x * cellSizeW - padding / 2;
+            int adjustedY = y * cellSizeH - padding / 2;
+
+            g.fillRect(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+        }
+    }
+
+
+    @Override
+    public void drawObstacle(Graphics g, int x, int y) {
+        super.drawObstacle(g, x, y);
+        Color c = new Color(255, 255, 255);
+        g.setColor(c);
+        g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
     }
 
     /**
@@ -125,10 +198,12 @@ public class AgentView extends GridWorldView {
      */
     @Override
     public void drawEmpty(Graphics g, int x, int y) {
-        super.drawEmpty(g, x, y);  // Call the superclass method to clear the grid cell.
-
-        // Set the color to white and fill the empty grid cell with white color.
-        g.setColor(Color.WHITE);
-        g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
+        super.drawEmpty(g, x, y);
+        Color c = new Color(255, 255, 255);
+        g.setColor(c);
+        g.fillRect(x * this.cellSizeW + 1, y * this.cellSizeH + 1, this.cellSizeW - 2, this.cellSizeH - 2);
+        Color c2 = new Color(255, 93, 93);
+        g.setColor(c2);
+        g.drawRect(x * this.cellSizeW, y * this.cellSizeH, this.cellSizeW, this.cellSizeH);
     }
 }
