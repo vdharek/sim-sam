@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.logging.Logger;
@@ -35,15 +36,18 @@ public class AgentView extends GridWorldView {
         setVisible(true);    // Make the window visible.
         this.agentModel = new AgentModel(model);
         this.iAgtClickListener = iAgtClickListener;
+        footpathArea(agentModel.getLocations());
     }
 
     private JButton startButton;  // Button to start the simulation
     private JButton stopButton;   // Button to stop the simulation
+    private JButton placeAgents;
 
     private void initializeButtons() {
         // Create buttons
         startButton = new JButton("Start");
         stopButton = new JButton("Stop");
+        placeAgents = new JButton("Place agents");
 
         // Add action listeners to buttons
         startButton.addActionListener(new ActionListener() {
@@ -60,12 +64,19 @@ public class AgentView extends GridWorldView {
             }
         });
 
+        placeAgents.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //agentModel.initiateStaticAgents();
+            }
+        });
+
         // Add buttons to the view
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.add(startButton);
         buttonPanel.add(stopButton);
-
+        buttonPanel.add(placeAgents);
 
         this.add(buttonPanel, BorderLayout.SOUTH);
         getCanvas().addMouseListener(new MouseListener() {
@@ -87,8 +98,9 @@ public class AgentView extends GridWorldView {
                 if (col >= 0 && lin >= 0 && col < getModel().getWidth() && lin < getModel().getHeight()) {
 
                     Location loc = new Location(col, lin);
+                    agentModel.initiateStaticAgents(loc);
                     //floodFillRecursive(loc, new HashSet<>());
-                    fillPolygon(loc);
+                    //fillPolygon(loc);
 
                     // Refresh the view to reflect changes
                     repaint();
@@ -101,6 +113,12 @@ public class AgentView extends GridWorldView {
         });
     }
 
+    private void footpathArea(List<Location> locations){
+        for (Location location : locations) {
+            fillPolygon(location);
+        }
+    }
+
     private void fillPolygon(Location startLoc) {
         Stack<Location> stack = new Stack<>();
         Set<Location> visited = new HashSet<>();
@@ -111,6 +129,8 @@ public class AgentView extends GridWorldView {
 
         while (!stack.isEmpty()) {
             Location loc = stack.pop();
+
+            //Location footpathLoc1 = new Location(210, 68);
 
             // Mark the current location as FOOTPATH
             agentModel.envModel.add(EnvModel.FOOTPATH, loc);
@@ -144,39 +164,25 @@ public class AgentView extends GridWorldView {
     public void draw(Graphics g, int x, int y, int object) {
         super.draw(g, x, y, object);  // Call the superclass method for default drawing behavior.
 
-        //Polygon polygon = agentModel.envModel.getPolygon();
-
         if ((object & EnvModel.FOOTPATH) != 0) {
-            g.setColor(new Color(184, 184, 184)); // Footpath color
+            g.setColor(new Color(161, 161, 161)); // Footpath color
             g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
         }
         if ((object & EnvModel.DRIVING) != 0) {
-            g.setColor(new Color(135, 135, 135)); // Driving lane color
+            g.setColor(new Color(92, 92, 92)); // Driving lane color
             g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
         }
         if ((object & EnvModel.PARKING) != 0) {
             g.setColor(new Color(172, 172, 172)); // Parking color
             g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
         }
-        if ((object & EnvModel.AGENT) != 0) {
+        /*if ((object & EnvModel.AGENT) != 0) {
             g.setColor(new Color(5, 5, 5)); // Agent color
             g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
-        }
+        }*/
         if ((object & EnvModel.STATIC_AGENT) != 0) {
-            /*g.setColor(new Color(255, 210, 0)); // Static agent color
-            g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);*/
             g.setColor(new Color(255, 255, 255)); // Static agent color
-
-            // Increase the rectangle size slightly
-            int padding = 2; // Padding to expand the size
-            int adjustedWidth = cellSizeW + padding;
-            int adjustedHeight = cellSizeH + padding;
-
-            // Offset the position to center the larger rectangle
-            int adjustedX = x * cellSizeW - padding / 2;
-            int adjustedY = y * cellSizeH - padding / 2;
-
-            g.fillRect(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+            g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
         }
     }
 
@@ -202,7 +208,7 @@ public class AgentView extends GridWorldView {
         Color c = new Color(255, 255, 255);
         g.setColor(c);
         g.fillRect(x * this.cellSizeW + 1, y * this.cellSizeH + 1, this.cellSizeW - 2, this.cellSizeH - 2);
-        Color c2 = new Color(255, 93, 93);
+        Color c2 = new Color(255, 255, 255);
         g.setColor(c2);
         g.drawRect(x * this.cellSizeW, y * this.cellSizeH, this.cellSizeW, this.cellSizeH);
     }

@@ -4,5 +4,6 @@ public interface I_agtClickListener {
 
     void onStartClick();
     void onStopClick();
+    void onClickReset();
 
 }

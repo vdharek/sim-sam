@@ -20,7 +20,16 @@ public class EnvModel extends GridWorldModel {
     Set<Location> wallLocation = new HashSet<>();
     ArrayList<Location> processedLocation = new ArrayList<>();
 
-    int screenWidth;
+    private int screenWidth;
+
+    public int getScreenWidth() {
+        return screenWidth;
+    }
+
+    public int getScreenHeight() {
+        return screenHeight;
+    }
+
     int screenHeight;
     double[] minMax;
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -28,7 +37,7 @@ public class EnvModel extends GridWorldModel {
     public double latScale;
     public double x0;
     public double y0;
-    int agentAdded = 5;
+    int agentAdded = 0;
 
     List<Location> agentLocations = new ArrayList<>();
     private int totalAgents;
@@ -42,7 +51,7 @@ public class EnvModel extends GridWorldModel {
         this.screenHeight = gridHeight;
         this.minMax = minMax;
         this.totalAgents = AGENTS;
-        setTotalAgents(agentAdded);
+        setTotalAgents(totalAgents);
 
         initializeScaling();
         markCoordinates(mapCoordinates);

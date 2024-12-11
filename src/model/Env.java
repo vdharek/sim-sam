@@ -53,16 +53,31 @@ public class Env extends Environment implements I_agtClickListener {
     void startSimulationLoop() {
         log.info("Simulation started.");
         simulationThread = new Thread(() -> {
+            int maxRetries = 5; // Maximum retries for finding a valid path
+            int retryCount = 0;
+
             while (true) {
                 try {
-                    Thread.sleep(200); // Adjust as needed
+                    Thread.sleep(80); // Adjust as needed
 
                     Location agent5Loc = agentModel.getAgentLocation(4); // Get Agent 5's location
+                    if (agent5Loc == null) {
+                        log.severe("Agent 5's location is null. Cannot proceed.");
+                        stopSimulationLoop();
+                        break;
+                    }
+
                     Location targetLoc;
                     if (currentTargetAgent < 4) {
                         targetLoc = agentModel.getAgentLocation(currentTargetAgent);
                     } else {
                         targetLoc = agent5StartLocation;
+                    }
+
+                    if (targetLoc == null) {
+                        log.severe("Target location for Agent 5 is null. Skipping to the next agent.");
+                        currentTargetAgent++;
+                        continue; // Skip this target
                     }
 
                     if (agent5Loc.equals(agent5StartLocation) && currentTargetAgent >= 4) {
@@ -77,25 +92,40 @@ public class Env extends Environment implements I_agtClickListener {
                             handleGreetAction("hello from Agent 5");
                         }
                         currentTargetAgent++;
-                        continue; // Move to the next target in the next iteration
+                        retryCount = 0; // Reset retry count for the next target
+                        continue;
                     }
 
-                    // Handle movement
                     Location nextStep = agentModel.getNextStepTowards(agent5Loc, targetLoc);
-                    //currentTargetAgent++;
-                    if (nextStep == null) {
-                        log.info("Footpath encountered by Agent 5. Redirecting to next agent.");
-                        currentTargetAgent++;
-                        continue; // Redirect to next agent
+
+                    if (nextStep.equals(agent5Loc)) { // No progress made
+                        retryCount++;
+                        log.warning("Agent 5 could not find a valid path. Retry count: " + retryCount);
+
+                        if (retryCount >= maxRetries) {
+                            if (currentTargetAgent < 4) {
+                                log.warning("Agent 5 is stuck. Skipping to the next target.");
+                                currentTargetAgent++;
+                            } else {
+                                log.warning("Agent 5 is stuck. Returning to starting position.");
+                            }
+                            retryCount = 0; // Reset retry count
+                        }
+                        continue; // Retry or move to the next target
                     } else {
-                        agentModel.moveAgent(4, nextStep); // Move Agent 5
-                        //log.info("Agent 5 moved to " + nextStep);
+                        retryCount = 0; // Reset retries after successful move
+                        agentModel.moveAgent(4, nextStep);
+                        log.info("Agent 5 moved to " + nextStep);
                     }
 
                     updatePercepts();
+
                 } catch (InterruptedException e) {
                     log.severe("Simulation loop interrupted: " + e.getMessage());
                     break;
+                } catch (Exception e) {
+                    log.severe("Unexpected error in simulation loop: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         });
@@ -119,13 +149,6 @@ public class Env extends Environment implements I_agtClickListener {
                         Literal.parseLiteral("position(agent" + (agentID + 1) + ", " + loc.x + ", " + loc.y + ")"));
             }
         }
-
-        // Detect if Agent 5 encounters FOOTPATH
-        Location agent5Loc = agentModel.getAgentLocation(4);
-        if (agent5Loc != null || envModel.hasObject(EnvModel.FOOTPATH, agent5Loc)) {
-            //addPercept("agent5", Literal.parseLiteral("encountered_footpath(" + agent5Loc.x + ", " + agent5Loc.y + ")"));
-            addPercept("agent5", Literal.parseLiteral("ENV Class: FOOTPATH encountered by Agent 5"));
-        }
     }
 
     void stopSimulationLoop() {
@@ -143,5 +166,10 @@ public class Env extends Environment implements I_agtClickListener {
     @Override
     public void onStopClick() {
         stopSimulationLoop();
+    }
+
+    @Override
+    public void onClickReset() {
+        clearAllPercepts();
     }
 }
